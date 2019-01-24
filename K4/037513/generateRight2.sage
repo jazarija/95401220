@@ -39,20 +39,20 @@ def create_new(G):
 
 
 L = []
-L3=[]
+# L3=[]
 for line in open("right.g6"):
-    L3+=[Graph(line).graph6_string()]
+    L +=[Graph(line).graph6_string()]
     for g in create_new(Graph(line)):
         L += [g.graph6_string()]
-L2=[]
-print len(L)
+# L2=[]
+# print len(L)
 L=list(set(L))
-print len(L)
-for g in L:
-    if g not in L3:
-        L2+=[g]
-print 'Got ', len(L2), 'graphs'
-o = open('right2.out','w')
-for G in L2:
+# print len(L)
+# for g in L:
+#     if g not in L3:
+#         L2+=[g]
+# print 'Got ', len(L2), 'graphs'
+o = open('right2.g6','w')
+for G in L:
     o.write(G + '\n')
-o.close()    
+o.close()

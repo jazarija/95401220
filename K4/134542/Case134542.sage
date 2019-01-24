@@ -9,12 +9,12 @@ cann = {}
 def fixGraph(G):
     global cann
     ret = []
-    
+
     toFix = set()
 
     for v in [0..17]:
         deg = G.subgraph([0..17]).degree(v)
-        nbrnum = len( set(G[v]).intersection(set([18,19])) )  
+        nbrnum = len( set(G[v]).intersection(set([18,19])) )
 
         if deg == 1 and nbrnum == 0:
             toFix.add(v)
@@ -55,6 +55,49 @@ def fixGraph(G):
                 ret += [H]
 
     return ret
+
+
+def extendVertex(G, v, toFix):
+    global cann
+
+    ret = []
+
+    if v == 18 or v == 19:
+        t = 3
+    elif v == 21 or v == 22:
+        t = 1
+    else:
+        t = 2
+
+    for nbr in Combinations([23..26],t):
+        H = G.copy()
+        H.add_edges( (v, el) for el in nbr)
+        s = H.canonical_label(partition=[[0..17],[18,19],[20],[21,22],[23..26]]).graph6_string()
+        if s not in cann:
+            cann[s] = True
+            X = H.subgraph( set(H) - set(toFix) )
+            X.relabel()
+            if isInterlacedFast(X):
+                ret += [H]
+    return ret
+
+# We obtain a graph with 23 vertices we add vertices [23,24,25,26] representing
+# K_4. The vertices [18,19] then need 3 vertices in K_4, 21,22 need a singe vertex in K_4
+# and the vertices 0..17 need 2 vertices in K_4
+def extend(G):
+    G.add_edges( Combinations( [23..26], 2) )
+    generated = [G]
+    toFix = [0..17] + [18,19] + [21,22]
+    while toFix:
+        v = toFix.pop()
+        generated_tmp = []
+        for G in generated:
+            generated_tmp += extendVertex(G,v, toFix)
+        generated = generated_tmp
+        print len(generated)
+    return generated
+
+
 
 
 L = []
@@ -113,10 +156,10 @@ L2 = []
 for G in L:
     G.add_edge(20, 21) # x_0', x_0'' = 21,22
     G.add_edge(20, 22)
-    
+
 # By Lemma 7 it follows, that x_1,x_2 are each adjacent to at least one of the vertices in [21,22]
 
-    for nbr1,nbr2 in CartesianProduct ( [ [21],[22], [21,22] ], [ [21],[22], [21,22] ] ):
+    for nbr1,nbr2 in CartesianProduct( [ (21,),(22,), (21,22) ], [ (21,),(22,), (21,22) ] ):
         H = G.copy()
         H.add_edges( (19,el) for el in nbr1)
         H.add_edges( (18,el) for el in nbr2)
@@ -133,6 +176,11 @@ for G in L2:
     L += fixGraph(G)
 print 'We got', len(L), 'candidate graphs.'
 
-o = open('Case1.out','w')
+L3 = []
 for G in L:
-    o.write(G.graph6_string() +'\n')
+    L3 += extend(G)
+
+o = open('candidates.out', 'w')
+for G in L3:
+    o.write(G.graph6_string() + '\n')
+o.close()

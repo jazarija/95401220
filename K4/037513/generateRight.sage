@@ -1,14 +1,14 @@
-load genericSRG.sage
-from multiprocessing import Pool 
+load ../../genericSRG.sage
+from multiprocessing import Pool
 from itertools import combinations
 
 # This code generates all graphs K_4 \cup X_3 \cup X_2^0
 
 def extendVertex(G, v, toFix, cann):
-    
+
     k = G.subgraph([0..9]).degree(v)
 
-    t = int(G.has_edge(v,11)) + int(G.has_edge(v,12)) 
+    t = int(G.has_edge(v,11)) + int(G.has_edge(v,12))
 
     ret = []
 
@@ -26,14 +26,14 @@ def extendVertex(G, v, toFix, cann):
         H.add_edge(v,y)
 
         s = H.canonical_label(partition=[[0..9],[10,11,12],[13..16]]).graph6_string()
-    
+
         if s not in cann:
-            cann.add(s) 
-            X = H.subgraph(set(H)-toFix)               
+            cann.add(s)
+            X = H.subgraph(set(H)-toFix)
             X.relabel()
             if isInterlacedFast(X):
                 ret+= [H]
-    return ret  
+    return ret
 
 # Vertices 8,9 and 10 are x_0, x_1 and x_2 while 11,12,13,14 are the vertices of K_4
 
@@ -46,7 +46,7 @@ def extend(G):
     G.add_edge(10,14)
     G.add_edge(10,15)
 
-    for v in  [0..9]: 
+    for v in  [0..9]:
         G.add_edge(10,v)
 
     edges_to_X3 = [ [(11,13), (11,14), (11,15), (12,13), (12,14), (12,15)],
@@ -66,7 +66,7 @@ def extend(G):
     toFix = set([0..9])
 
     while toFix:
-        
+
         v = toFix.pop()
         generated_tmp = []
         cann = set()
@@ -74,7 +74,7 @@ def extend(G):
             generated_tmp += extendVertex(H, v, toFix, cann)
 
         generated = generated_tmp
-        
+
     print 'We got plenty of graphs', len(generated)
 
     return generated
@@ -82,12 +82,12 @@ def extend(G):
 L = []
 
 global cann
-cann = set() 
+cann = set()
 
 
 # In this first part we construct all possible graphs X_2^0 which
 # are labeled with the integers 0,..,9. The vertices 8 and 9 are the
-# ones that are potentially adjacent to x_1 or x_2.    
+# ones that are potentially adjacent to x_1 or x_2.
 
 for G in graphs.nauty_geng("-t -D2 8"):
 
@@ -128,7 +128,7 @@ for G in graphs.nauty_geng("-t -D2 8"):
         s2 = H2.canonical_label(partition = [ [9], [0..8] ]).graph6_string()
 
         if s1 not in cann or s2 not in cann:
-            cann.add(s1) 
+            cann.add(s1)
             cann.add(s2)
 
             if isInterlacedFast(H2):
@@ -137,15 +137,15 @@ for G in graphs.nauty_geng("-t -D2 8"):
 print 'got' , len(L), 'right graphs'
 
 cann = set()
-    
+
 L2 = []
 p = Pool(8)
 
 for el in p.imap(extend, L):
     L2 += el
-print 'We got a final list of length', len(L2) 
+print 'We got a final list of length', len(L2)
 
 o = open('right.g6','w')
 for G in L2:
     o.write(G.graph6_string() + '\n')
-o.close() 
+o.close()
